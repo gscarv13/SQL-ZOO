@@ -63,10 +63,19 @@ SELECT DISTINCT b.stop, a.company, a.num FROM route a
 /*Find the routes involving two buses that can go from Craiglockhart to Lochend.
 Show the bus no. and company for the first bus, the name of the stop for the transfer,
 and the bus no. and company for the second bus.*/
-SELECT DISTINCT a.num, a.company, a.stop, b.num, b.company FROM route a
- JOIN route b ON (a.company=b.company AND a.num=b.num)
- JOIN stops x ON (a.stop=x.name)
- JOIN stops y ON (b.stop=y.name)
-WHERE a.stop = 'Craiglockhart' AND b.stop <> 'Lochend'
-    OR a.stop <> 'Craiglockhart' AND b.stop = 'Lochend'
---Keep returning "SQLZOO system error: error"
+SELECT DISTINCT start.num, start.company, start.name, finish.num, finish.company
+FROM (select distinct a.num, a.company, x2.name
+     from route a join route b on (a.company=b.company and a.num=b.num) 
+                  join stops x1 on (x1.id=a.stop) 
+                  join stops x2 on (x2.id=b.stop)
+     where x1.name='Craiglockhart' and x2.name<>'Lochend'
+     ) AS start
+
+JOIN (select distinct c.num, d.company, y1.name
+     from route c join route d on (c.company=d.company and c.num=d.num) 
+                  join stops y1 on (y1.id=c.stop) 
+                  join stops y2 on (y2.id=d.stop)
+     where y1.name <> 'Craiglockhart' and y2.name='Lochend'
+     ) AS finish
+
+ON (finish.name=start.name)
